@@ -12,7 +12,7 @@ const tmpPath = path.join(__dirname, "..", ".tmp");
 /**
  * Delete the .tmp directory before each test
  */
-beforeEach(done => {
+beforeEach((done) => {
   rimraf(tmpPath, done);
 });
 
@@ -25,7 +25,11 @@ beforeEach(done => {
 exports.run = function (args) {
   // Run the CLI
   args = [cliPath].concat(Array.prototype.slice.call(arguments));
-  let output = spawnSync("node", args, { env: { ...process.env, NODE_OPTIONS: "" }});
+
+  console.log(args);
+  let output = spawnSync("node", args, {
+    env: { ...process.env, NODE_OPTIONS: "" },
+  });
 
   // Normalize the output
   output.stdout = replacePaths(output.stdout.toString());
@@ -40,18 +44,18 @@ exports.run = function (args) {
  * @param {string} output - The original program output
  * @returns {string}
  */
-function replacePaths (output) {
+function replacePaths(output) {
   let newOutput = "";
 
-  while (true) {                                  // eslint-disable-line no-constant-condition
+  while (true) {
+    // eslint-disable-line no-constant-condition
     newOutput = output.replace(cwdPath, "");
     newOutput = newOutput.replace(cwdUrl, "");
 
     if (newOutput === output) {
       // No more occurrences exist
       return newOutput;
-    }
-    else {
+    } else {
       output = newOutput;
     }
   }

@@ -8,7 +8,7 @@ const helpText = require("./help-text.json");
 
 const validTypeOptions = ["json", "yaml"];
 
-(function main () {
+(function main() {
   let args = parseArgs();
   let command = args.command;
   let file = args.file;
@@ -22,7 +22,12 @@ const validTypeOptions = ["json", "yaml"];
   // Check if the output type contains a valid value
   if (validTypeOptions.indexOf(options.type) === -1) {
     const validValues = validTypeOptions.join(", ");
-    console.error('Error: type value "' + options.type + '" is invalid. Valid values: ' + validValues);
+    console.error(
+      'Error: type value "' +
+        options.type +
+        '" is invalid. Valid values: ' +
+        validValues
+    );
     process.exit(2);
   }
 
@@ -30,30 +35,26 @@ const validTypeOptions = ["json", "yaml"];
     // Show help text and exit
     console.log(getHelpText(command));
     process.exit(0);
-  }
-  else if (command === "validate" && file) {
+  } else if (command === "validate" && file) {
     // Validate an API
     validate(file, options);
-  }
-  else if (command === "bundle" && file) {
+  } else if (command === "bundle" && file) {
     // Bundle a multi-file API
     bundle(file, options);
-  }
-  else {
+  } else {
     // Invalid args.  Show help text and exit with non-zero
     console.error("Error: Invalid arguments\n");
     console.error(getHelpText(command));
     process.exit(1);
   }
-}());
-
+})();
 
 /**
  * Parses the command-line arguments
  *
  * @returns {object} - The parsed arguments
  */
-function parseArgs () {
+function parseArgs() {
   // Configure the argument parser
   yargs
     .option("schema", {
@@ -72,6 +73,10 @@ function parseArgs () {
     .option("r", {
       alias: "dereference",
       type: "boolean",
+    })
+    .option("a", {
+      alias: "auth",
+      type: "string",
     })
     .option("t", {
       alias: "type",
@@ -99,9 +104,7 @@ function parseArgs () {
     });
 
   // Show the version number on "--version" or "-v"
-  yargs
-    .version()
-    .alias("v", "version");
+  yargs.version().alias("v", "version");
 
   // Disable the default "--help" behavior
   yargs.help(false);
@@ -118,12 +121,13 @@ function parseArgs () {
       spec: args.spec,
       outfile: args.outfile,
       dereference: args.dereference,
+      auth: args.auth,
       format: args.format || 2,
       type: args.type || "json",
       wrap: args.wrap || Infinity,
       debug: args.debug,
       help: args.help,
-    }
+    },
   };
 
   if (parsed.options.debug) {
@@ -133,7 +137,6 @@ function parseArgs () {
   return parsed;
 }
 
-
 /**
  * Validates an API definition against the Swagger/OpenAPI schema and spec
  *
@@ -142,16 +145,14 @@ function parseArgs () {
  * @param {boolean} options.schema - Whether to validate against the Swagger/OpenAPI schema
  * @param {boolean} options.spec - Whether to validate against the Swagger/OpenAPI specification
  */
-async function validate (file, options) {
+async function validate(file, options) {
   try {
     await api.validate(file, options);
     console.log(file, "is valid");
-  }
-  catch (error) {
+  } catch (error) {
     errorHandler(error);
   }
 }
-
 
 /**
  * Bundles a multi-file API definition
@@ -159,23 +160,20 @@ async function validate (file, options) {
  * @param {string} file - The path of the file to validate
  * @param {object} options - Validation options
  */
-async function bundle (file, options) {
+async function bundle(file, options) {
   try {
     let bundled = await api.bundle(file, options);
 
     if (options.outfile) {
       console.log("Created %s from %s", options.outfile, file);
-    }
-    else {
+    } else {
       // Write the bundled API to stdout
       console.log(bundled);
     }
-  }
-  catch (error) {
+  } catch (error) {
     errorHandler(error);
   }
 }
-
 
 /**
  * Returns the help text for the specified command
@@ -183,18 +181,17 @@ async function bundle (file, options) {
  * @param {string} [commandName] - The command to show help text for
  * @returns {string} - the help text
  */
-function getHelpText (commandName) {
+function getHelpText(commandName) {
   let lines = helpText[commandName] || helpText.default;
   return lines.join("\n");
 }
-
 
 /**
  * Writes error information to stderr and exits with a non-zero code
  *
  * @param {Error} err
  */
-function errorHandler (err) {
+function errorHandler(err) {
   let errorMessage = process.env.DEBUG ? err.stack : err.message;
   console.error(chalk.red(errorMessage));
   process.exit(1);
